@@ -1,262 +1,345 @@
 import { useMemo, useState } from 'react'
 import './App.css'
 
-type CarBrand = {
+type Brand = {
   name: string
-  icon: string
+  short: string
 }
 
-const carBrands: CarBrand[] = [
-  { name: 'ایران خودرو', icon: '🚗' },
-  { name: 'سایپا', icon: '🚙' },
-  { name: 'پژو', icon: '🔧' },
-  { name: 'رنو', icon: '⚙️' },
-  { name: 'کیا', icon: '🚘' },
-  { name: 'هیوندای', icon: '🚗' },
-  { name: 'تویوتا', icon: '🚕' },
-  { name: 'BMW', icon: '🏎️' },
-  { name: 'Mercedes-Benz', icon: '🚘' },
-  { name: 'Volkswagen', icon: '🚗' },
-  { name: 'نیسان', icon: '🚙' },
-  { name: 'مزدا', icon: '🚗' },
+const brands: Brand[] = [
+  { name: 'ایران خودرو', short: 'IK' },
+  { name: 'سایپا', short: 'SA' },
+  { name: 'پژو', short: 'PE' },
+  { name: 'رنو', short: 'RE' },
+  { name: 'کیا', short: 'KI' },
+  { name: 'هیوندای', short: 'HY' },
+  { name: 'تویوتا', short: 'TO' },
+  { name: 'نیسان', short: 'NI' },
+  { name: 'BMW', short: 'BMW' },
+  { name: 'Mercedes-Benz', short: 'MB' },
 ]
 
-function App() {
-  const [search, setSearch] = useState('')
-  const [activeMenu, setActiveMenu] = useState('خانه')
+const menuItems = [
+  { id: 'home', label: 'خانه', icon: 'home' },
+  { id: 'info', label: 'اطلاعات', icon: 'info' },
+  { id: 'learn', label: 'آموزش', icon: 'book' },
+  { id: 'account', label: 'حساب', icon: 'user' },
+  { id: 'diagram', label: 'دیاگرام', icon: 'diagram' },
+  { id: 'ads', label: 'تبلیغات', icon: 'ads' },
+]
 
-  const filteredBrands = useMemo(() => {
-    const value = search.trim().toLowerCase()
+function Icon({ name }: { name: string }) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
 
-    if (!value) {
-      return carBrands
-    }
-
-    return carBrands.filter((brand) =>
-      brand.name.toLowerCase().includes(value),
+  if (name === 'home') {
+    return (
+      <svg {...common}>
+        <path d="M3 10.8 12 3l9 7.8" />
+        <path d="M5.5 9.8V21h13V9.8" />
+        <path d="M9.5 21v-6h5v6" />
+      </svg>
     )
-  }, [search])
+  }
 
-  const menuItems = [
-    {
-      name: 'خانه',
-      icon: '⌂',
-    },
-    {
-      name: 'اطلاعات کاربردی',
-      icon: '⚙',
-    },
-    {
-      name: 'مطالب آموزشی',
-      icon: '▤',
-    },
-    {
-      name: 'حساب کاربری',
-      icon: '♙',
-    },
-    {
-      name: 'دیاگرام',
-      icon: '⌁',
-    },
-    {
-      name: 'تبلیغات',
-      icon: '▣',
-    },
-  ]
+  if (name === 'info') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 10.5V16" />
+        <path d="M12 7.5h.01" />
+      </svg>
+    )
+  }
 
-  const handleMenuClick = (name: string) => {
-    setActiveMenu(name)
+  if (name === 'book') {
+    return (
+      <svg {...common}>
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" />
+        <path d="M4 5.5v16" />
+        <path d="M8 7h8" />
+        <path d="M8 11h8" />
+      </svg>
+    )
+  }
 
-    if (name !== 'خانه') {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
-    }
+  if (name === 'user') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M5 21a7 7 0 0 1 14 0" />
+      </svg>
+    )
+  }
+
+  if (name === 'diagram') {
+    return (
+      <svg {...common}>
+        <circle cx="5" cy="6" r="2" />
+        <circle cx="19" cy="6" r="2" />
+        <circle cx="12" cy="18" r="2" />
+        <path d="M7 6h10" />
+        <path d="m7 7 3.5 8" />
+        <path d="m17 7-3.5 8" />
+      </svg>
+    )
   }
 
   return (
-    <div className="app">
-      <header className="top-bar">
-        <div className="brand">
-          <div className="brand-logo">MC</div>
+    <svg {...common}>
+      <path d="M4 5h16v14H4z" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
+    </svg>
+  )
+}
 
-          <div className="brand-text">
-            <strong>MapCircuit</strong>
-            <span>ECU & Automotive</span>
-          </div>
-        </div>
+function App() {
+  const [activeMenu, setActiveMenu] = useState('home')
+  const [search, setSearch] = useState('')
 
-        <button
-          className="search-button"
-          onClick={() => {
-            document.getElementById('search-input')?.focus()
-          }}
-          aria-label="جستجو"
-        >
-          🔍
-        </button>
-      </header>
+  const filteredBrands = useMemo(() => {
+    const query = search.trim().toLowerCase()
 
-      <main className="content">
-        <section className="hero">
-          <div className="hero-overlay">
-            <div className="hero-badge">MAPCIRCUIT</div>
+    if (!query) return brands
 
-            <h1>تخصص در دنیای ECU</h1>
+    return brands.filter((brand) =>
+      brand.name.toLowerCase().includes(query),
+    )
+  }, [search])
 
-            <p>
-              اطلاعات فنی، آموزش، دیاگرام و منابع تخصصی تعمیرات خودرو
-            </p>
+  return (
+    <div className="app-shell">
+      <div className="app-screen">
 
-            <button className="hero-button">
-              شروع کنید
-              <span>←</span>
-            </button>
-          </div>
-        </section>
+        {/* Header */}
+        <header className="app-header">
+          <div className="header-brand">
+            <div className="logo-mark">
+              MC
+            </div>
 
-        <section className="search-section">
-          <div className="section-title">
             <div>
-              <span className="section-label">SEARCH</span>
-              <h2>جستجو</h2>
+              <div className="logo-title">MapCircuit</div>
+              <div className="logo-subtitle">
+                ECU • Automotive
+              </div>
             </div>
           </div>
 
-          <div className="search-box">
-            <span className="search-icon">⌕</span>
+          <button
+            className="profile-button"
+            aria-label="حساب کاربری"
+            onClick={() => setActiveMenu('account')}
+          >
+            <Icon name="user" />
+          </button>
+        </header>
+
+        {/* Main */}
+        <main className="main-content">
+
+          {/* Welcome */}
+          <section className="welcome-section">
+            <span className="welcome-small">
+              خوش آمدید
+            </span>
+
+            <h1>
+              چه چیزی نیاز دارید؟
+            </h1>
+
+            <p>
+              خودرو، ECU، دیاگرام و مطالب آموزشی را پیدا کنید.
+            </p>
+          </section>
+
+          {/* Search */}
+          <section className="search-container">
+            <div className="search-icon">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-4-4" />
+              </svg>
+            </div>
 
             <input
-              id="search-input"
-              type="search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="نام شرکت یا خودرو را جستجو کنید..."
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="جستجوی خودرو یا ECU..."
+              type="search"
             />
 
             {search && (
               <button
-                className="clear-search"
+                className="search-clear"
                 onClick={() => setSearch('')}
-                aria-label="پاک کردن جستجو"
               >
                 ×
               </button>
             )}
-          </div>
-        </section>
+          </section>
 
-        <section className="brands-section">
-          <div className="section-title">
-            <div>
-              <span className="section-label">AUTOMOTIVE</span>
-              <h2>انتخاب شرکت خودروسازی</h2>
+          {/* Quick actions */}
+          <section className="quick-actions">
+            <button
+              className="quick-action"
+              onClick={() => setActiveMenu('diagram')}
+            >
+              <div className="quick-icon blue">
+                <Icon name="diagram" />
+              </div>
+
+              <div>
+                <strong>دیاگرام</strong>
+                <span>نقشه‌های سیم‌کشی</span>
+              </div>
+
+              <b>‹</b>
+            </button>
+
+            <button
+              className="quick-action"
+              onClick={() => setActiveMenu('learn')}
+            >
+              <div className="quick-icon light-blue">
+                <Icon name="book" />
+              </div>
+
+              <div>
+                <strong>آموزش</strong>
+                <span>مطالب تخصصی ECU</span>
+              </div>
+
+              <b>‹</b>
+            </button>
+          </section>
+
+          {/* Brands */}
+          <section className="brands-section">
+
+            <div className="section-heading">
+              <div>
+                <span>خودرو</span>
+                <h2>انتخاب شرکت خودروسازی</h2>
+              </div>
+
+              <button className="see-all">
+                همه
+              </button>
             </div>
 
-            <span className="brand-count">
-              {filteredBrands.length} شرکت
-            </span>
-          </div>
+            <div className="brand-grid">
+              {filteredBrands.map((brand) => (
+                <button
+                  className="brand-card"
+                  key={brand.name}
+                >
+                  <div className="brand-logo">
+                    {brand.short}
+                  </div>
 
-          <div className="brands-grid">
-            {filteredBrands.map((brand) => (
-              <button
-                className="brand-card"
-                key={brand.name}
-                onClick={() => {
-                  alert(`شرکت ${brand.name} انتخاب شد`)
-                }}
-              >
-                <span className="brand-icon">{brand.icon}</span>
+                  <span>{brand.name}</span>
 
-                <span className="brand-name">
-                  {brand.name}
+                  <small>›</small>
+                </button>
+              ))}
+            </div>
+
+            {filteredBrands.length === 0 && (
+              <div className="empty-result">
+                <div className="empty-icon">
+                  ?
+                </div>
+
+                <strong>
+                  نتیجه‌ای پیدا نشد
+                </strong>
+
+                <span>
+                  عبارت دیگری را جستجو کنید.
                 </span>
+              </div>
+            )}
+          </section>
 
-                <span className="brand-arrow">←</span>
-              </button>
-            ))}
-          </div>
+          {/* Featured */}
+          <section className="featured-card">
+            <div className="featured-content">
+              <span>MAPCIRCUIT</span>
 
-          {filteredBrands.length === 0 && (
-            <div className="empty-state">
-              <div>🔎</div>
-
-              <h3>موردی پیدا نشد</h3>
+              <h2>
+                مرجع تخصصی ECU
+              </h2>
 
               <p>
-                نام شرکت یا خودرو را با عبارت دیگری جستجو کنید.
+                تعمیرات، سیم‌کشی، دیاگرام و فایل‌های ECU
               </p>
+
+              <button
+                onClick={() => setActiveMenu('info')}
+              >
+                مشاهده اطلاعات
+                <span>←</span>
+              </button>
             </div>
-          )}
-        </section>
 
-        <section className="quick-section">
-          <div className="section-title">
-            <div>
-              <span className="section-label">MAPCIRCUIT</span>
-              <h2>دسترسی سریع</h2>
+            <div className="featured-pattern">
+              <div className="circuit-line line-1" />
+              <div className="circuit-line line-2" />
+              <div className="circuit-line line-3" />
+
+              <div className="circuit-node node-1" />
+              <div className="circuit-node node-2" />
+              <div className="circuit-node node-3" />
             </div>
-          </div>
+          </section>
 
-          <div className="quick-grid">
-            <button className="quick-card">
-              <span>🧰</span>
-              <strong>تعمیرات ECU</strong>
-              <small>اطلاعات فنی</small>
-            </button>
+          <div className="bottom-space" />
+        </main>
 
-            <button className="quick-card">
-              <span>📚</span>
-              <strong>آموزش‌ها</strong>
-              <small>مطالب تخصصی</small>
-            </button>
+        {/* Bottom Navigation */}
+        <nav className="bottom-navigation">
+          {menuItems.map((item) => {
+            const active = activeMenu === item.id
 
-            <button className="quick-card">
-              <span>⌁</span>
-              <strong>دیاگرام</strong>
-              <small>نقشه‌های سیم‌کشی</small>
-            </button>
+            return (
+              <button
+                key={item.id}
+                className={`nav-button ${
+                  active ? 'active' : ''
+                }`}
+                onClick={() => setActiveMenu(item.id)}
+              >
+                <div className="nav-icon">
+                  <Icon name={item.icon} />
+                </div>
 
-            <button className="quick-card">
-              <span>💾</span>
-              <strong>دامپ ECU</strong>
-              <small>فایل‌های تخصصی</small>
-            </button>
-          </div>
-        </section>
+                <span>
+                  {item.label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
 
-        <footer className="footer">
-          <div className="footer-logo">MapCircuit</div>
-
-          <p>
-            مرجع تخصصی ECU، الکترونیک خودرو و آموزش تعمیرات
-          </p>
-
-          <span>© 2026 MapCircuit</span>
-        </footer>
-      </main>
-
-      <nav className="bottom-nav">
-        {menuItems.map((item) => {
-          const isActive = activeMenu === item.name
-
-          return (
-            <button
-              key={item.name}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={() => handleMenuClick(item.name)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-
-              <span className="nav-label">
-                {item.name}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
+      </div>
     </div>
   )
 }
