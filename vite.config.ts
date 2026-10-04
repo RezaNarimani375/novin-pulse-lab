@@ -1,7 +1,89 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  // GitHub Pages
+  base: '/novin-pulse-lab/',
+
+  plugins: [
+    react(),
+
+    VitePWA({
+      registerType: 'autoUpdate',
+
+      includeAssets: [
+        'favicon.svg',
+        'icons/apple-touch-icon.png',
+      ],
+
+      manifest: {
+        name: 'MapCircuit',
+        short_name: 'MapCircuit',
+
+        description:
+          'MapCircuit - نرم‌افزار تخصصی ECU و مدارهای الکترونیکی',
+
+        start_url: '/novin-pulse-lab/',
+        scope: '/novin-pulse-lab/',
+
+        display: 'standalone',
+        orientation: 'portrait',
+
+        theme_color: '#000000',
+        background_color: '#000000',
+
+        lang: 'fa',
+        dir: 'rtl',
+
+        icons: [
+          {
+            src: '/novin-pulse-lab/icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/novin-pulse-lab/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: '/novin-pulse-lab/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+
+      workbox: {
+        cleanupOutdatedCaches: true,
+
+        navigateFallback: '/novin-pulse-lab/index.html',
+
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
+
+      devOptions: {
+        enabled: true,
+      },
+    }),
+  ],
 })
