@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';
 
 export default defineConfig({
   // GitHub Pages
   base: '/novin-pulse-lab/',
 
-  plugins: [
+  plugins: [dyadComponentTagger(), 
     react(),
 
     VitePWA({
