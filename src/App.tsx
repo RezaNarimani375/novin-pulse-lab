@@ -1,344 +1,189 @@
-import { useMemo, useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './App.css'
+import { BRANDS, type BrandData } from './data/brandsData'
+import { Header } from './components/Header'
+import { SearchBox } from './components/SearchBox'
+import { AutoprogBanner } from './components/AutoprogBanner'
+import { BrandList } from './components/BrandList'
+import { BottomNavigation, type TabType } from './components/BottomNavigation'
+import { BrandDetailModal } from './components/BrandDetailModal'
+import { PracticalInfoView } from './components/PracticalInfoView'
+import { TutorialsView } from './components/TutorialsView'
+import { AccountView } from './components/AccountView'
+import { SideDrawer } from './components/SideDrawer'
+import { InstagramModal } from './components/InstagramModal'
 
-type Brand = {
-  name: string
-  short: string
-}
+export function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('home')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedBrand, setSelectedBrand] = useState<BrandData | null>(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isInstagramOpen, setIsInstagramOpen] = useState(false)
+  const [bookmarks, setBookmarks] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('mapcircuit_bookmarks')
+      return saved ? JSON.parse(saved) : ['ikco-me17-pinout', 'saipa-siemens-pinout']
+    } catch {
+      return ['ikco-me17-pinout', 'saipa-siemens-pinout']
+    }
+  })
 
-const brands: Brand[] = [
-  { name: 'ایران خودرو', short: 'IK' },
-  { name: 'سایپا', short: 'SA' },
-  { name: 'پژو', short: 'PE' },
-  { name: 'رنو', short: 'RE' },
-  { name: 'کیا', short: 'KI' },
-  { name: 'هیوندای', short: 'HY' },
-  { name: 'تویوتا', short: 'TO' },
-  { name: 'نیسان', short: 'NI' },
-  { name: 'BMW', short: 'BMW' },
-  { name: 'Mercedes-Benz', short: 'MB' },
-]
+  useEffect(() => {
+    try {
+      localStorage.setItem('mapcircuit_bookmarks', JSON.stringify(bookmarks))
+    } catch {
+      // LocalStorage fallback
+    }
+  }, [bookmarks])
 
-const menuItems = [
-  { id: 'home', label: 'خانه', icon: 'home' },
-  { id: 'info', label: 'اطلاعات', icon: 'info' },
-  { id: 'learn', label: 'آموزش', icon: 'book' },
-  { id: 'account', label: 'حساب', icon: 'user' },
-  { id: 'diagram', label: 'دیاگرام', icon: 'diagram' },
-  { id: 'ads', label: 'تبلیغات', icon: 'ads' },
-]
-
-function Icon({ name }: { name: string }) {
-  const common = {
-    width: 22,
-    height: 22,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  }
-
-  if (name === 'home') {
-    return (
-      <svg {...common}>
-        <path d="M3 10.8 12 3l9 7.8" />
-        <path d="M5.5 9.8V21h13V9.8" />
-        <path d="M9.5 21v-6h5v6" />
-      </svg>
+  const toggleBookmark = (diagramId: string) => {
+    setBookmarks((prev) =>
+      prev.includes(diagramId) ? prev.filter((id) => id !== diagramId) : [...prev, diagramId]
     )
   }
 
-  if (name === 'info') {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 10.5V16" />
-        <path d="M12 7.5h.01" />
-      </svg>
-    )
-  }
+  const isBookmarked = (diagramId: string) => bookmarks.includes(diagramId)
 
-  if (name === 'book') {
-    return (
-      <svg {...common}>
-        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z" />
-        <path d="M4 5.5v16" />
-        <path d="M8 7h8" />
-        <path d="M8 11h8" />
-      </svg>
-    )
-  }
-
-  if (name === 'user') {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="8" r="3.5" />
-        <path d="M5 21a7 7 0 0 1 14 0" />
-      </svg>
-    )
-  }
-
-  if (name === 'diagram') {
-    return (
-      <svg {...common}>
-        <circle cx="5" cy="6" r="2" />
-        <circle cx="19" cy="6" r="2" />
-        <circle cx="12" cy="18" r="2" />
-        <path d="M7 6h10" />
-        <path d="m7 7 3.5 8" />
-        <path d="m17 7-3.5 8" />
-      </svg>
-    )
-  }
-
-  return (
-    <svg {...common}>
-      <path d="M4 5h16v14H4z" />
-      <path d="M8 9h8" />
-      <path d="M8 13h5" />
-    </svg>
-  )
-}
-
-function App() {
-  const [activeMenu, setActiveMenu] = useState('home')
-  const [search, setSearch] = useState('')
-
+  // Filter brands based on search query
   const filteredBrands = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return BRANDS
 
-    if (!query) return brands
-
-    return brands.filter((brand) =>
-      brand.name.toLowerCase().includes(query),
+    return BRANDS.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.englishName.toLowerCase().includes(q) ||
+        b.models.some((m) => m.name.toLowerCase().includes(q) || m.engine.toLowerCase().includes(q)) ||
+        b.ecus.some((e) => e.name.toLowerCase().includes(q) || e.code.toLowerCase().includes(q))
     )
-  }, [search])
+  }, [searchQuery])
+
+  // Get active page header title
+  const getHeaderTitle = () => {
+    switch (activeTab) {
+      case 'home':
+        return 'صفحه اصلی'
+      case 'practical':
+        return 'اطلاعات کاربردی'
+      case 'tutorials':
+        return 'مطالب آموزشی'
+      case 'account':
+        return 'حساب کاربری'
+      default:
+        return 'صفحه اصلی'
+    }
+  }
 
   return (
-    <div className="app-shell">
-      <div className="app-screen">
+    <div className="app-viewport-wrapper">
+      <div className="iphone-device-frame">
+        {/* Simulated iPhone Status Bar (Matching the screenshot: 7:45 PM, 5G, 67% battery) */}
+        <div className="iphone-status-bar" aria-hidden="true">
+          <span className="status-time">7:45 PM</span>
 
-        {/* Header */}
-        <header className="app-header">
-          <div className="header-brand">
-            <div className="logo-mark">
-              MC
-            </div>
-
-            <div>
-              <div className="logo-title">MapCircuit</div>
-              <div className="logo-subtitle">
-                ECU • Automotive
-              </div>
-            </div>
+          <div className="status-dynamic-island">
+            <span className="island-camera-dot" />
           </div>
 
-          <button
-            className="profile-button"
-            aria-label="حساب کاربری"
-            onClick={() => setActiveMenu('account')}
-          >
-            <Icon name="user" />
-          </button>
-        </header>
+          <div className="status-icons-group">
+            {/* 5G Signal */}
+            <svg width="15" height="11" viewBox="0 0 17 12" fill="currentColor">
+              <rect x="0" y="9" width="2.5" height="3" rx="0.5" />
+              <rect x="4.5" y="6" width="2.5" height="6" rx="0.5" />
+              <rect x="9" y="3" width="2.5" height="9" rx="0.5" />
+              <rect x="13.5" y="0" width="2.5" height="12" rx="0.5" />
+            </svg>
+            {/* Wi-Fi */}
+            <svg width="14" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" strokeLinecap="round" />
+              <path d="M8.5 16.5a6 6 0 0 1 7 0" strokeLinecap="round" />
+              <circle cx="12" cy="20" r="1" fill="currentColor" />
+            </svg>
+            {/* Battery */}
+            <span className="battery-pill">67%</span>
+          </div>
+        </div>
 
-        {/* Main */}
-        <main className="main-content">
+        {/* App Top Header: Hamburger on Right, Green Dot + Title, Instagram on Left */}
+        <Header
+          activeTitle={getHeaderTitle()}
+          onOpenMenu={() => setIsMenuOpen(true)}
+          onOpenInstagram={() => setIsInstagramOpen(true)}
+        />
 
-          {/* Welcome */}
-          <section className="welcome-section">
-            <span className="welcome-small">
-              خوش آمدید
-            </span>
+        {/* Scrollable Main Views */}
+        <main className="app-scroll-content">
+          {activeTab === 'home' && (
+            <>
+              {/* Search Section: MapCircuit badge + input */}
+              <SearchBox
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onClear={() => setSearchQuery('')}
+              />
 
-            <h1>
-              چه چیزی نیاز دارید؟
-            </h1>
+              {/* Only show banner when not actively searching */}
+              {!searchQuery && <AutoprogBanner />}
 
-            <p>
-              خودرو، ECU، دیاگرام و مطالب آموزشی را پیدا کنید.
-            </p>
-          </section>
+              {/* Car Manufacturers List (All 22 brands matching photo 1, 2, 3, 4) */}
+              <BrandList
+                brands={filteredBrands}
+                onSelectBrand={setSelectedBrand}
+                searchQuery={searchQuery}
+              />
+            </>
+          )}
 
-          {/* Search */}
-          <section className="search-container">
-            <div className="search-icon">
-              <svg
-                width="21"
-                height="21"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-4-4" />
-              </svg>
-            </div>
+          {activeTab === 'practical' && <PracticalInfoView />}
 
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="جستجوی خودرو یا ECU..."
-              type="search"
+          {activeTab === 'tutorials' && <TutorialsView />}
+
+          {activeTab === 'account' && (
+            <AccountView
+              bookmarkedCount={bookmarks.length}
+              onOpenInstagram={() => setIsInstagramOpen(true)}
             />
-
-            {search && (
-              <button
-                className="search-clear"
-                onClick={() => setSearch('')}
-              >
-                ×
-              </button>
-            )}
-          </section>
-
-          {/* Quick actions */}
-          <section className="quick-actions">
-            <button
-              className="quick-action"
-              onClick={() => setActiveMenu('diagram')}
-            >
-              <div className="quick-icon blue">
-                <Icon name="diagram" />
-              </div>
-
-              <div>
-                <strong>دیاگرام</strong>
-                <span>نقشه‌های سیم‌کشی</span>
-              </div>
-
-              <b>‹</b>
-            </button>
-
-            <button
-              className="quick-action"
-              onClick={() => setActiveMenu('learn')}
-            >
-              <div className="quick-icon light-blue">
-                <Icon name="book" />
-              </div>
-
-              <div>
-                <strong>آموزش</strong>
-                <span>مطالب تخصصی ECU</span>
-              </div>
-
-              <b>‹</b>
-            </button>
-          </section>
-
-          {/* Brands */}
-          <section className="brands-section">
-
-            <div className="section-heading">
-              <div>
-                <span>خودرو</span>
-                <h2>انتخاب شرکت خودروسازی</h2>
-              </div>
-
-              <button className="see-all">
-                همه
-              </button>
-            </div>
-
-            <div className="brand-grid">
-              {filteredBrands.map((brand) => (
-                <button
-                  className="brand-card"
-                  key={brand.name}
-                >
-                  <div className="brand-logo">
-                    {brand.short}
-                  </div>
-
-                  <span>{brand.name}</span>
-
-                  <small>›</small>
-                </button>
-              ))}
-            </div>
-
-            {filteredBrands.length === 0 && (
-              <div className="empty-result">
-                <div className="empty-icon">
-                  ?
-                </div>
-
-                <strong>
-                  نتیجه‌ای پیدا نشد
-                </strong>
-
-                <span>
-                  عبارت دیگری را جستجو کنید.
-                </span>
-              </div>
-            )}
-          </section>
-
-          {/* Featured */}
-          <section className="featured-card">
-            <div className="featured-content">
-              <span>MAPCIRCUIT</span>
-
-              <h2>
-                مرجع تخصصی ECU
-              </h2>
-
-              <p>
-                تعمیرات، سیم‌کشی، دیاگرام و فایل‌های ECU
-              </p>
-
-              <button
-                onClick={() => setActiveMenu('info')}
-              >
-                مشاهده اطلاعات
-                <span>←</span>
-              </button>
-            </div>
-
-            <div className="featured-pattern">
-              <div className="circuit-line line-1" />
-              <div className="circuit-line line-2" />
-              <div className="circuit-line line-3" />
-
-              <div className="circuit-node node-1" />
-              <div className="circuit-node node-2" />
-              <div className="circuit-node node-3" />
-            </div>
-          </section>
-
-          <div className="bottom-space" />
+          )}
         </main>
 
-        {/* Bottom Navigation */}
-        <nav className="bottom-navigation">
-          {menuItems.map((item) => {
-            const active = activeMenu === item.id
+        {/* Bottom Navigation Bar (Deep Cobalt Blue Dock) */}
+        <BottomNavigation
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+        />
 
-            return (
-              <button
-                key={item.id}
-                className={`nav-button ${
-                  active ? 'active' : ''
-                }`}
-                onClick={() => setActiveMenu(item.id)}
-              >
-                <div className="nav-icon">
-                  <Icon name={item.icon} />
-                </div>
+        {/* iPhone Home Indicator Line */}
+        <div className="iphone-home-indicator-bar" aria-hidden="true" />
 
-                <span>
-                  {item.label}
-                </span>
-              </button>
-            )
-          })}
-        </nav>
+        {/* Brand Detail Modal (Models, ECUs, Wiring Diagrams & Interactive Pinout) */}
+        {selectedBrand && (
+          <BrandDetailModal
+            brand={selectedBrand}
+            onClose={() => setSelectedBrand(null)}
+            onBookmarkDiagram={toggleBookmark}
+            isBookmarked={isBookmarked}
+          />
+        )}
 
+        {/* Side Menu Drawer */}
+        <SideDrawer
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          onNavigateTab={(tab) => {
+            setActiveTab(tab)
+            setSelectedBrand(null)
+          }}
+          onOpenInstagram={() => setIsInstagramOpen(true)}
+        />
+
+        {/* Instagram / Social Sheet */}
+        <InstagramModal
+          isOpen={isInstagramOpen}
+          onClose={() => setIsInstagramOpen(false)}
+        />
       </div>
     </div>
   )
